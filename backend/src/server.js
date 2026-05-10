@@ -45,6 +45,7 @@ app.use('/api/audit', require('./routes/audit'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/cache', require('./routes/cache'));
 app.use('/api/requests', require('./routes/request'));
+app.use('/api/ai', require('./routes/ai'));
 
 app.get('/', (req, res) => res.json({ message: 'ABAC System API Running' }));
 
