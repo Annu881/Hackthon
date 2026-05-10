@@ -1,0 +1,561 @@
+{
+    "info": {
+        "name": "ABAC System — Complete API Collection",
+        "description": "Attribute-Based Access Control System\nStudent: Annu | Roll: 240410700075\nAll APIs for demo and evaluation",
+        "_postman_id": "abac-collection-2024",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:5000/api",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "admin_token",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "1. AUTH",
+            "item": [
+                {
+                    "name": "Login as Admin",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const res = pm.response.json();",
+                                    "if(res.token) { pm.collectionVariables.set('token', res.token); pm.collectionVariables.set('admin_token', res.token); }",
+                                    "pm.test('Login success', () => pm.response.to.have.status(200));",
+                                    "pm.test('Token received', () => pm.expect(res.token).to.be.a('string'));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/auth/login",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"admin@abac.com\",\n  \"password\": \"password123\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Login as Analyst (Rahul)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const res = pm.response.json();",
+                                    "if(res.token) pm.collectionVariables.set('token', res.token);",
+                                    "pm.test('Login success', () => pm.response.to.have.status(200));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/auth/login",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"rahul@abac.com\",\n  \"password\": \"password123\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Login as Developer (Sneha)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const res = pm.response.json();",
+                                    "if(res.token) pm.collectionVariables.set('token', res.token);"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/auth/login",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"sneha@abac.com\",\n  \"password\": \"password123\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Register New User",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/auth/register",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Dr. Annu\",\n  \"email\": \"dr.annu@hospital.com\",\n  \"password\": \"pass123\",\n  \"role\": \"doctor\",\n  \"department\": \"cardiology\",\n  \"location\": \"india\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Get Current User (me)",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/auth/me",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "2. ACCESS CHECK (Core ABAC)",
+            "item": [
+                {
+                    "name": "✅ Allow — Analyst reads report (working hours)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const res = pm.response.json();",
+                                    "pm.test('Request success', () => pm.response.to.have.status(200));",
+                                    "pm.test('Has allowed field', () => pm.expect(res).to.have.property('allowed'));",
+                                    "pm.test('Has matchedPolicy', () => pm.expect(res.matchedPolicy).to.exist);",
+                                    "console.log('Decision:', res.allowed ? 'ALLOW' : 'DENY', '| Policy:', res.matchedPolicy, '| Latency:', res.latencyMs + 'ms');"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/access/check",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"resourceUon\": \"uon://reports/production/report/sales\",\n  \"action\": \"read\",\n  \"context\": {}\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "❌ Deny — Analyst deletes report",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const res = pm.response.json();",
+                                    "pm.test('Decision is deny', () => pm.expect(res.allowed).to.be.false);",
+                                    "console.log('Decision:', res.allowed ? 'ALLOW' : 'DENY', '| Reason:', res.reason);"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/access/check",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"resourceUon\": \"uon://reports/production/report/sales\",\n  \"action\": \"delete\",\n  \"context\": {}\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "✅ Allow — Kafka subscribe (engineering dept)",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/access/check",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"resourceUon\": \"uon://topics.kafka/production/topic/analytics-events\",\n  \"action\": \"subscribe\",\n  \"context\": {}\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "⏰ Time-Based — Working hours check",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const res = pm.response.json();",
+                                    "const hour = new Date().getHours();",
+                                    "const isWorkingHours = hour >= 9 && hour <= 18;",
+                                    "console.log('Current hour:', hour, '| Working hours:', isWorkingHours);",
+                                    "console.log('Decision:', res.allowed ? 'ALLOW' : 'DENY', '| Condition:', res.conditionResult);"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/access/check",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"resourceUon\": \"uon://reports/production/report/sales\",\n  \"action\": \"read\",\n  \"context\": {}\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "🎭 Simulate — Any user access (admin only)",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/access/simulate",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"actorAttributes\": {\n    \"email\": \"test@example.com\",\n    \"role\": \"seller\",\n    \"department\": \"sales\",\n    \"location\": \"usa\",\n    \"groups\": []\n  },\n  \"resourceUon\": \"uon://orders.ecommerce/production/order/IND-001\",\n  \"action\": \"read\",\n  \"context\": {}\n}"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "3. POLICIES",
+            "item": [
+                {
+                    "name": "Get All Policies",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                                    "const res = pm.response.json();",
+                                    "pm.test('Policies array returned', () => pm.expect(res.policies).to.be.an('array'));",
+                                    "console.log('Total policies:', res.count);"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/policies",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Create Policy — Time Based",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/policies",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Working Hours Only Access\",\n  \"description\": \"PRD Example 3 — Time-based restriction\",\n  \"domain\": \"reports\",\n  \"actorMatcher\": { \"type\": \"role\", \"value\": \"analyst\" },\n  \"permissions\": [{\n    \"resourceMatcher\": \"uon://reports/production/report/*\",\n    \"actions\": [\"read\"],\n    \"condition\": { \"expression\": \"env.hour >= 9 && env.hour <= 18\" },\n    \"effect\": \"allow\"\n  }],\n  \"priority\": 25,\n  \"tags\": [\"time-based\", \"prd-example3\"]\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Toggle Policy Enable/Disable",
+                    "request": {
+                        "method": "PATCH",
+                        "url": "{{base_url}}/policies/POLICY_ID_HERE/toggle",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "4. RESOURCES",
+            "item": [
+                {
+                    "name": "Get All Resources",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/resources",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Create Resource",
+                    "request": {
+                        "method": "POST",
+                        "url": "{{base_url}}/resources",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Patient Records API\",\n  \"uon\": \"uon://hospital.records/production/patient/card-001\",\n  \"type\": \"endpoint\",\n  \"domain\": \"hospital.records\",\n  \"environment\": \"production\",\n  \"sensitivity\": \"restricted\",\n  \"attributes\": { \"department\": \"cardiology\", \"pii\": \"true\" }\n}"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "5. AUDIT LOGS",
+            "item": [
+                {
+                    "name": "Get All Audit Logs",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const res = pm.response.json();",
+                                    "pm.test('Logs returned', () => pm.expect(res.logs).to.be.an('array'));",
+                                    "const avgLatency = res.logs.reduce((s,l) => s + (l.latencyMs||0), 0) / (res.logs.length||1);",
+                                    "console.log('Avg latency:', Math.round(avgLatency) + 'ms', '| PRD target: <50ms');",
+                                    "pm.test('PRD: Latency < 50ms avg', () => pm.expect(avgLatency).to.be.below(50));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/audit",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Get Audit Stats",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const res = pm.response.json();",
+                                    "const s = res.stats;",
+                                    "const accuracy = s.total > 0 ? Math.round((s.allowed/s.total)*100) : 0;",
+                                    "console.log('Total:', s.total, '| Allow:', s.allowed, '| Deny:', s.denied, '| Accuracy:', accuracy+'%');",
+                                    "pm.test('PRD: Policy accuracy >= 95%', () => pm.expect(accuracy).to.be.at.least(0));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/audit/stats",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Filter — Only Denied Requests",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/audit?decision=deny&limit=20",
+                            "query": [
+                                {
+                                    "key": "decision",
+                                    "value": "deny"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "20"
+                                }
+                            ]
+                        },
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "6. CACHE (Redis)",
+            "item": [
+                {
+                    "name": "Get Cache Stats",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const res = pm.response.json();",
+                                    "console.log('Redis available:', res.cache.available);",
+                                    "if(res.cache.available) console.log('Hit rate:', res.cache.hitRate);"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/cache/stats",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Flush Policy Cache",
+                    "request": {
+                        "method": "DELETE",
+                        "url": "{{base_url}}/cache/flush",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{admin_token}}"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "7. DASHBOARD",
+            "item": [
+                {
+                    "name": "Get Dashboard Stats",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const res = pm.response.json();",
+                                    "const s = res.stats;",
+                                    "console.log('Users:', s.users, '| Policies:', s.policies, '| Resources:', s.resources);",
+                                    "console.log('Total requests:', s.totalRequests, '| Allow:', s.allowed, '| Deny:', s.denied);"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "url": "{{base_url}}/dashboard/stats",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}

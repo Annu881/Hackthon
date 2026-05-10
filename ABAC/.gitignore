@@ -1,0 +1,20 @@
+# Node.js
+node_modules/
+dist/
+build/
+.env
+.DS_Store
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.system_generated/
+*.log
+
+# Project specific
+backend/node_modules/
+frontend/node_modules/
+frontend/build/
+.gemini/
+brain/
