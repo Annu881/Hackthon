@@ -171,7 +171,6 @@ PORT=3001 npm start   # App runs on http://localhost:3001
 ## 👤 Author
 **Annu881**
 - GitHub: [@Annu881](https://github.com/Annu881)
-- Project: [ABAC-Access-Control](https://github.com/Annu881/ABAC-Access-Control)
 
 <div align="center">
 
