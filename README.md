@@ -46,6 +46,10 @@
 - **Redis Caching**: Sub-50ms authorization latency via policy and resource caching.
 - **Premium UI**: Dark mode optimized with 3D icon animations and real-time polling.
 
+### 🧠 AI Policy Copilot (Anakin AI)
+- **Intelligent Database Layer**: Integrates the Anakin AI API to dynamically evaluate high-risk policies and identify complex authorization anomalies before they reach the execution phase.
+- **Real-Time Threat Intelligence**: Acts as a secondary analytical provider within the database engine to auto-lockdown compromised resources continuously monitoring audit logs.
+
 ---
 
 ## 🏗️ Architecture
